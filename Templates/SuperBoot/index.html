@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" class="easy-sidebar-active">
+<head>
+    <meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="description here">
+    <meta name="author" content="content here">
+    <meta name="superfish" content="nofish">
+
+    <title>SuperBoot</title>
+
+    <!-- Bootstrap Core, Sidebar, and Index CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/easy-sidebar.css" rel="stylesheet">
+    <link href="css/index.css" rel="stylesheet">
+    <link href="css/slideshow.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="css/font-awesome.css" rel="stylesheet" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Raleway:400,500,600,200|Merriweather:400,700,300' rel='stylesheet' type='text/css'>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!--favicon-->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!--Map Style Thing-->
+    <style type="text/css">
+        html { height: 100% }
+        body { height: 400px; margin: 0; padding: 0 }
+        #map-canvas { height: 100% }
+    </style>
+
+    <!--load Google Map after the rest of the page loads-->
+    <script>
+        var map;
+        var directionsDisplay;
+        var directionsService;
+        var stepDisplay;
+        var markerArray = [];
+
+        function initialize() {
+
+          // Instantiate a directions service.
+          directionsService = new google.maps.DirectionsService();
+
+          var myLatLng = new google.maps.LatLng(47.591, 8.541); //lat and lng of place
+          var mapOptions = {
+            zoom: 15,
+            center: myLatLng,
+            mapTypeId: google.maps.MapTypeId.ROADMAP //choose from roadmap, satellite, hybrid, and terrain.
+          };
+
+          var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+          // Create a renderer for directions and bind it to the map.
+          var rendererOptions = {
+            map: map
+          }
+
+          directionsDisplay = new google.maps.DirectionsRenderer(rendererOptions);
+
+          // Instantiate an info window to hold step text.
+          stepDisplay = new google.maps.InfoWindow();
+
+          // To add the marker to the map, use the 'map' property
+          var marker = new google.maps.Marker({
+            position: myLatLng,
+            map: map,
+            title:"Hardhof!"
+          });
+        }
+
+        function calcRoute() {
+
+          // First, clear out any existing markerArray
+          // from previous calculations.
+          for (i = 0; i < markerArray.length; i++) {
+            markerArray[i].setMap(null);
+          }
+
+          // Retrieve the start and end locations and create
+          // a DirectionsRequest using DRIVING directions.
+          //var start = document.getElementById("start").value; //needs lat and lng
+          //var start = "Stuttgart, Germany"; //needs lat and lng
+          //var end = document.getElementById("end").value; //needs lat and lng
+          //var end = myLatLng; //set in line 6
+          var request = {
+              origin: start,
+              destination: end,
+              travelMode: google.maps.TravelMode.DRIVING //walking, biking, transit are other options
+          };
+
+          // Route the directions and pass the response to a
+          // function to create markers for each step.
+          directionsService.route(request, function(response, status) {
+            if (status == google.maps.DirectionsStatus.OK) {
+              var warnings = document.getElementById("warnings_panel");
+              warnings.innerHTML = "" + response.routes[0].warnings + "";
+              directionsDisplay.setDirections(response);
+              showSteps(response);
+            }
+          });
+        }
+
+        function showSteps(directionResult) {
+          // For each step, place a marker, and add the text to the marker's
+          // info window. Also attach the marker to an array so we
+          // can keep track of it and remove it when calculating new
+          // routes.
+          var myRoute = directionResult.routes[0].legs[0];
+
+          for (var i = 0; i < myRoute.steps.length; i++) {
+              var marker = new google.maps.Marker({
+                position: myRoute.steps[i].start_point,
+                map: map
+              });
+              attachInstructionText(marker, myRoute.steps[i].instructions);
+              markerArray[i] = marker;
+          }
+        }
+
+        function attachInstructionText(marker, text) {
+          google.maps.event.addListener(marker, 'click', function() {
+            stepDisplay.setContent(text);
+            stepDisplay.open(map, marker);
+          });
+        }
+
+        //we can also add unique and customized map styles. see the Google Maps API for more info.
+        //https://developers.google.com/maps/documentation/javascript/styling#map_features
+
+        //we can also add or remove map controls
+        //https://developers.google.com/maps/documentation/javascript/controls#Adding_Controls_to_the_Map
+
+        function loadScript() {
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp' +
+              '&signed_in=true&callback=initialize';
+          document.body.appendChild(script);
+        }
+
+        window.onload = loadScript;
+    </script>
+
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-default navbar-fixed-top topnav" role="navigation">
+    <div class="container topnav">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <img class="navbar-brand topnav" src="http://placehold.it/100x100">
+            <img class="navbar-brand topnav" src="http://placehold.it/650x100">
+        </div>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#home">home</a>
+                </li>
+                <li>
+                    <a href="#about">about</a>
+                </li>
+                <li>
+                    <a href="#contact">contact</a>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">dropdown
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#insert href">item 1</a></li>
+                        <!--<li class="divider"></li>-->
+                    </ul>
+                </li>
+                <!--social media-->
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-facebook"></i> | <i class="fa fa-twitter"></i> | <i class="fa fa-linkedin"></i>
+                        <span class=""></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li>
+                            <a href="#facebookURL" class="btn btn-social-icon btn-sm btn-facebook" onclick="_gaq.push(['_trackEvent', 'btn-social-icon', 'click', 'btn-xs']);"><i class="fa fa-facebook"></i></a>
+                        </li>
+                        <li>
+                            <a href="#twitterURL" class="btn btn-social-icon btn-sm btn-facebook" onclick="_gaq.push(['_trackEvent', 'btn-social-icon', 'click', 'btn-xs']);"><i class="fa fa-twitter"></i></a>
+                        </li>
+                        <li>
+                            <a href="#linkedinURL" class="btn btn-social-icon btn-sm btn-linkedin" onclick="_gaq.push(['_trackEvent', 'btn-social-icon', 'click', 'btn-xs']);"><i class="fa fa-linkedin"></i></a>
+                        </li>
+                        <!--<li class="divider"></li>-->
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<div class="pushdown"></div>
+
+<nav class="navbar navbar-inverse easy-sidebar">
+    Sidebar content goes here.
+</nav>
+
+<div class="container-fluid easy-sidebar-container">
+    ALL page content goes here.
+</div>
+
+<!--easy sidebar test button-->
+<button type="button" class="navbar-toggle easy-sidebar-toggle" aria-expanded="false">
+    <span class="sr-only">Toggle sidebar</span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+</button>
+
+<!--jQuery Slideshow-->
+<!--Works with Mozilla, Opera, Chrome, Safari, IE, and Android Browser-->
+<!--slideshow doesn't play too nicely with containers-->
+<!--make sure to reduce image size to speed up load time-->
+<a name="home"></a>
+<div>
+    <!--<div class="container-fluid">-->
+    <div class="row">
+        <div class="col-md-12 col-sm-12">
+            <div class="slideshow" data-transition="crossfade" data-loop="true" data-skip="false">
+                <ul class="carousel">
+                    <li class="slide">
+                        <img src="http://placehold.it/1600x650" alt="" width="100%" height="auto" />
+                    </li>
+                    <li class="slide">
+                        <img src="http://placehold.it/1600x650" alt="" width="100%" height="auto" />
+                    </li>
+                    <li class="slide">
+                        <img src="http://placehold.it/1600x650" alt="" width="100%" height="auto" />
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--</div>-->
+</div>
+
+<!--about-->
+<a name="about"></a>
+<div class="container">
+    <div class="about">
+        <div class="row">
+            <div class="col-md-4">
+                <img src="http://placehold.it/400x400">
+            </div>
+            <div class="col-md-8">
+                <h2>tagline goes here</h2>
+                <h3>paragraph goes here</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--contact-->
+<a name="contact"></a>
+<!--Google Map-->
+<div id="map-canvas" style="width: 100%; height: 100%"></div>
+
+<!--Font-awesome phone, email-->
+<!--MailChimp-->
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <ul class="list-inline">
+                    <li>
+                        <a href="#about">about</a>
+                    </li>
+                </ul>
+                <p class="copyright text-muted small">Copyright &copy; COMPANY NAME, YEAR. All Rights Reserved. Designed in CITY, STATE</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery and JS-->
+<script src="js/jquery.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/slideshow.js"></script>
+<script src="detect_swipe/jquery.detect_swipe.js"></script>
+<script>
+    $(function() {
+        // Create slideshow instances
+        var $s = $('.slideshow').slides();
+
+        // Access an instance API
+        var api = $s.eq(0).data('slides');
+
+        // Transition select
+        $('select[name=transition]').on('change', function() {
+            api.redraw( this.value );
+        });
+    });
+</script>
+
+<script>
+    $('.easy-sidebar-toggle').click(function(e) {
+        e.preventDefault();
+        $('.easy-sidebar-container').toggleClass('toggled');
+        $('.navbar.easy-sidebar').toggleClass('toggled');
+    });
+    $('html').on('swiperight', function(){
+        $('.easy-sidebar-container').addClass('toggled');
+        $('.navbar.easy-sidebar').addClass('toggled');
+    });
+    $('html').on('swipeleft', function(){
+        $('.easy-sidebar-container').removeClass('toggled');
+        $('.navbar.easy-sidebar').removeClass('toggled');
+    });
+</script>
+
+</body>
+</html>
